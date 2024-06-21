@@ -11,20 +11,48 @@ namespace Ebanx.Controllers;
 [AllowAnonymous]
 public class AccountController : ControllerBase
 {
-    private readonly IAccountService _accountService;
-    private ICollection<AccountDto> _accounts; 
+    private readonly IAccountService _accountService;    
 
     public AccountController(IAccountService accountService)
     {
-        _accountService = accountService;
-        _accounts = new List<AccountDto>() { new() { Id=1, Balance = 123} };
+        _accountService = accountService;        
     }
 
     [HttpPost("reset")]
     public async Task<IActionResult> Post()
     {
-        _accounts = new List<AccountDto>();
+        var result = _accountService.Reset();
+
+        if(result == false)            
+            return StatusCode(StatusCodes.Status500InternalServerError);
+
         return Ok();
     }
 
+    [HttpGet("balance")]
+    public async Task<IActionResult> GetBalance([FromQuery] int account_id)
+    {
+        var account = _accountService.GetBalance(account_id);
+
+        if (account == null)
+            return NotFound(0);
+
+        return Ok(account.Balance);
+    }
+
+    [HttpPost("event")]
+    public async Task<IActionResult> PostEvent([FromBody] EventDto data)
+    {
+        try
+        {
+            var result = _accountService.Post(data);
+
+        }
+        catch (Exception)
+        {
+            return NotFound(0);
+        }
+
+        return Created("deposito", data);
+    }
 }

@@ -4,6 +4,7 @@ namespace Ebanx.Interfaces;
 
 public interface IAccountService
 {
-    Task<AccountDto> Get(int id);
-    Task<AccountDto> Post();
+    bool Reset();
+    AccountDto? GetBalance(int id);
+    AccountDto Post(EventDto data);
 }

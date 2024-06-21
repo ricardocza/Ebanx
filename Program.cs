@@ -19,9 +19,11 @@ if (app.Environment.IsDevelopment())
 }
 
 var urls = builder.Configuration.GetSection("AllowOrigins").Get<string[]>();
+var methods = builder.Configuration.GetSection("AllowMethods").Get<string[]>();
+
 app.UseCors(policy =>
     policy.WithOrigins(urls)
-    .AllowAnyMethod()
+    .WithMethods(methods)
     .AllowAnyHeader()
 );
 
