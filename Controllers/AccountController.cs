@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Ebanx.Controllers;
 
-[Route("api/[controller]")]
+[Route("/")]
 [ApiController]
 [AllowAnonymous]
 public class AccountController : ControllerBase
@@ -26,7 +26,7 @@ public class AccountController : ControllerBase
         if(result == false)            
             return StatusCode(StatusCodes.Status500InternalServerError);
 
-        return Ok();
+        return Ok("OK");
     }
 
     [HttpGet("balance")]
