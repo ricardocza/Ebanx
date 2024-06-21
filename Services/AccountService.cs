@@ -5,10 +5,7 @@ namespace Ebanx.Services;
 
 public class AccountService : IAccountService
 {
-    private static ICollection<AccountDto> _accounts = new List<AccountDto>()
-    {
-        new() { Id = 123, Balance = 123 }
-    };
+    private static ICollection<AccountDto> _accounts = new List<AccountDto>();
 
     public AccountDto? GetBalance(int id)
     {
@@ -17,7 +14,7 @@ public class AccountService : IAccountService
         return account;
     }
 
-    public AccountDto Post(EventDto data)
+    public Dictionary<string, object> Post(EventDto data)
     {
         if (data.Amount <= 0)
         {
@@ -29,18 +26,18 @@ public class AccountService : IAccountService
         switch (type)
         {
             case "deposit":
-                Deposit(data);
-                break;
+                var depositResult = Deposit(data);
+                return depositResult;
             case "withdraw":
-                Withdraw(data);
-                break;
+                var withdrawResult = Withdraw(data);
+                return withdrawResult;
+                
             case "transfer":
-                Transfer(data);
-                break;
+                var transferResult = Transfer(data);
+                return transferResult;
             default:
                 throw new InvalidDataException("Invalid type operation");                
         }
-        return new AccountDto();
     }
 
     public bool Reset()
@@ -50,19 +47,20 @@ public class AccountService : IAccountService
         return _accounts.Count == 0;
     }
 
-    private void Deposit(EventDto data)
+    private Dictionary<string, object> Deposit(EventDto data)
     {
         var destination = _accounts.FirstOrDefault(a => a.Id == data.Destination);
         if (destination == null)
         {
-            _accounts.Add(new AccountDto { Id = data.Destination, Balance = data.Amount });
+            destination = new AccountDto { Id = data.Destination, Balance = data.Amount };            
+            _accounts.Add(destination);
+            return new Dictionary<string, object>() { {"destination", destination } };
         }
-        else
-        {
-             destination.Balance += data.Amount;
-        }        
+        
+        destination.Balance += data.Amount;
+        return new Dictionary<string, object>() { { "destination", destination } };
     }
-    private void Withdraw(EventDto data)
+    private Dictionary<string, object> Withdraw(EventDto data)
     {
         var origin = _accounts.FirstOrDefault(a => a.Id == data.Origin);
         
@@ -70,28 +68,43 @@ public class AccountService : IAccountService
         {
             throw new Exception();
         }
-        else
-        {
-            origin.Balance -= data.Amount;
-        }
+
+        ValidateAvailableBalance(origin, data.Amount);
+        origin.Balance -= data.Amount;
+        return new Dictionary<string, object>() { { "origin", origin } };
     }
-    private void Transfer(EventDto data)
+    private Dictionary<string, object> Transfer(EventDto data)
     {
         var origin = _accounts.FirstOrDefault(a => a.Id == data.Origin);
-        var destination = _accounts.FirstOrDefault(a => a.Id == data.Destination);
 
         if (origin == null)
         {
             throw new Exception();
         }
-        else if (destination == null)
+
+        ValidateAvailableBalance(origin, data.Amount);
+        var destination = _accounts.FirstOrDefault(a => a.Id == data.Destination);
+
+        if (destination == null)
         {
-            _accounts.Add(new AccountDto { Id = data.Destination, Balance = data.Amount });
+            destination = new AccountDto { Id = data.Destination, Balance = data.Amount };
+            _accounts.Add(destination);
+            origin.Balance -= data.Amount;
         }
         else
         {
             origin.Balance -= data.Amount;
             destination.Balance += data.Amount;
+        }
+
+        return new Dictionary<string, object> { { "origin", origin }, { "destination", destination } };
+    }
+
+    private static void ValidateAvailableBalance(AccountDto account, decimal amount)
+    {
+        if (account.Balance < amount)
+        {
+            throw new InvalidOperationException("Insufficient funds");
         }
     }
 }

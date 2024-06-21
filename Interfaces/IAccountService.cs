@@ -6,5 +6,5 @@ public interface IAccountService
 {
     bool Reset();
     AccountDto? GetBalance(int id);
-    AccountDto Post(EventDto data);
+    Dictionary<string, object> Post(EventDto data);
 }

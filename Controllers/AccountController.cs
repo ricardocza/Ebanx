@@ -46,13 +46,11 @@ public class AccountController : ControllerBase
         try
         {
             var result = _accountService.Post(data);
-
+            return  Created(string.Empty, result);
         }
         catch (Exception)
         {
             return NotFound(0);
         }
-
-        return Created("deposito", data);
     }
 }
