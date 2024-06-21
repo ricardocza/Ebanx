@@ -1,4 +1,5 @@
-﻿using Ebanx.Interfaces;
+﻿using Ebanx.Enumerations;
+using Ebanx.Interfaces;
 using Ebanx.Models;
 
 namespace Ebanx.Services;
@@ -6,48 +7,41 @@ namespace Ebanx.Services;
 public class AccountService : IAccountService
 {
     private static ICollection<AccountDto> _accounts = new List<AccountDto>();
+    
+    public bool Reset()
+    {
+        _accounts = new List<AccountDto>();
+        return _accounts.Count == 0;
+    }
 
     public AccountDto? GetBalance(int id)
     {
         var account = _accounts.FirstOrDefault(a => a.Id == id);
-
         return account;
     }
 
     public Dictionary<string, object> Post(EventDto data)
-    {
-        if (data.Amount <= 0)
-        {
-            throw new InvalidOperationException("Amount must be greater than 0");
-        }
+    {        
+        ValidataData(data);
 
-        var type = data.Type.ToLower();
-
-        switch (type)
+        switch (data.Type)
         {
-            case "deposit":
+            case Enumerations.TypeEnum.Deposit:
                 var depositResult = Deposit(data);
                 return depositResult;
-            case "withdraw":
+            case TypeEnum.Withdraw:
                 var withdrawResult = Withdraw(data);
                 return withdrawResult;
                 
-            case "transfer":
+            case TypeEnum.Transfer:
                 var transferResult = Transfer(data);
                 return transferResult;
             default:
-                throw new InvalidDataException("Invalid type operation");                
+                throw new InvalidOperationException("Internal server error");
         }
     }
 
-    public bool Reset()
-    {
-        _accounts = new List<AccountDto>();
-
-        return _accounts.Count == 0;
-    }
-
-    private Dictionary<string, object> Deposit(EventDto data)
+    private static Dictionary<string, object> Deposit(EventDto data)
     {
         var destination = _accounts.FirstOrDefault(a => a.Id == data.Destination);
         if (destination == null)
@@ -60,7 +54,8 @@ public class AccountService : IAccountService
         destination.Balance += data.Amount;
         return new Dictionary<string, object>() { { "destination", destination } };
     }
-    private Dictionary<string, object> Withdraw(EventDto data)
+
+    private static Dictionary<string, object> Withdraw(EventDto data)
     {
         var origin = _accounts.FirstOrDefault(a => a.Id == data.Origin);
         
@@ -73,7 +68,8 @@ public class AccountService : IAccountService
         origin.Balance -= data.Amount;
         return new Dictionary<string, object>() { { "origin", origin } };
     }
-    private Dictionary<string, object> Transfer(EventDto data)
+
+    private static Dictionary<string, object> Transfer(EventDto data)
     {
         var origin = _accounts.FirstOrDefault(a => a.Id == data.Origin);
 
@@ -105,6 +101,32 @@ public class AccountService : IAccountService
         if (account.Balance < amount)
         {
             throw new InvalidOperationException("Insufficient funds");
+        }
+    }
+
+    private void ValidataData(EventDto data)
+    {
+        var errors = new List<string>();
+        
+        if (data.Amount <= 0)
+        {
+            errors.Add("Amount must be greater than 0");
+        }
+        if ((data.Type == Enumerations.TypeEnum.Deposit || data.Type == TypeEnum.Transfer) && data.Destination <= 0)
+        {
+            errors.Add("Invalid destination account number");
+        }
+        if ((data.Type == TypeEnum.Withdraw || data.Type == TypeEnum.Transfer) && data.Origin <= 0)
+        {
+            errors.Add("Invalid origin account number");
+        }
+        if (data.Type == TypeEnum.Transfer && data.Destination == data.Origin)
+        {
+            errors.Add("Origin and destination account number must be different");
+        }        
+        if (errors.Count > 0)
+        {
+            throw new InvalidOperationException(string.Join("\n", errors));
         }
     }
 }

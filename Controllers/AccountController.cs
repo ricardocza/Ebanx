@@ -48,6 +48,10 @@ public class AccountController : ControllerBase
             var result = _accountService.Post(data);
             return  Created(string.Empty, result);
         }
+        catch (InvalidOperationException e)
+        {
+            return BadRequest(e.Message);
+        }
         catch (Exception)
         {
             return NotFound(0);
