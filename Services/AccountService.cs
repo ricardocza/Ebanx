@@ -1,6 +1,7 @@
 ﻿using Ebanx.Enumerations;
 using Ebanx.Interfaces;
 using Ebanx.Models;
+using System.Text.Json;
 
 namespace Ebanx.Services;
 
@@ -14,13 +15,13 @@ public class AccountService : IAccountService
         return _accounts.Count == 0;
     }
 
-    public AccountDto? GetBalance(int id)
+    public AccountDto? GetBalance(string id)
     {
         var account = _accounts.FirstOrDefault(a => a.Id == id);
         return account;
     }
 
-    public Dictionary<string, object> Post(EventDto data)
+    public ResponseDto Post(EventDto data)
     {        
         ValidataData(data);
 
@@ -41,21 +42,21 @@ public class AccountService : IAccountService
         }
     }
 
-    private static Dictionary<string, object> Deposit(EventDto data)
+    private static ResponseDto Deposit(EventDto data)
     {
         var destination = _accounts.FirstOrDefault(a => a.Id == data.Destination);
         if (destination == null)
         {
             destination = new AccountDto { Id = data.Destination, Balance = data.Amount };            
-            _accounts.Add(destination);
-            return new Dictionary<string, object>() { {"destination", destination } };
+            _accounts.Add(destination);            
+            return new ResponseDto() { Destination=destination };
         }
         
         destination.Balance += data.Amount;
-        return new Dictionary<string, object>() { { "destination", destination } };
+        return new ResponseDto() { Destination = destination };
     }
 
-    private static Dictionary<string, object> Withdraw(EventDto data)
+    private static ResponseDto Withdraw(EventDto data)
     {
         var origin = _accounts.FirstOrDefault(a => a.Id == data.Origin);
         
@@ -66,10 +67,10 @@ public class AccountService : IAccountService
 
         ValidateAvailableBalance(origin, data.Amount);
         origin.Balance -= data.Amount;
-        return new Dictionary<string, object>() { { "origin", origin } };
+        return new ResponseDto() { Origin = origin };
     }
 
-    private static Dictionary<string, object> Transfer(EventDto data)
+    private static ResponseDto Transfer(EventDto data)
     {
         var origin = _accounts.FirstOrDefault(a => a.Id == data.Origin);
 
@@ -93,7 +94,11 @@ public class AccountService : IAccountService
             destination.Balance += data.Amount;
         }
 
-        return new Dictionary<string, object> { { "origin", origin }, { "destination", destination } };
+        return new ResponseDto 
+        { 
+            Origin = origin, 
+            Destination = destination 
+        };
     }
 
     private static void ValidateAvailableBalance(AccountDto account, decimal amount)
@@ -111,15 +116,7 @@ public class AccountService : IAccountService
         if (data.Amount <= 0)
         {
             errors.Add("Amount must be greater than 0");
-        }
-        if ((data.Type == Enumerations.TypeEnum.Deposit || data.Type == TypeEnum.Transfer) && data.Destination <= 0)
-        {
-            errors.Add("Invalid destination account number");
-        }
-        if ((data.Type == TypeEnum.Withdraw || data.Type == TypeEnum.Transfer) && data.Origin <= 0)
-        {
-            errors.Add("Invalid origin account number");
-        }
+        }        
         if (data.Type == TypeEnum.Transfer && data.Destination == data.Origin)
         {
             errors.Add("Origin and destination account number must be different");

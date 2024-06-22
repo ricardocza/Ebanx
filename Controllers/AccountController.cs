@@ -3,6 +3,9 @@ using Ebanx.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Encodings.Web;
+using System.Text.Json;
+using System.Text.Unicode;
 
 namespace Ebanx.Controllers;
 
@@ -26,11 +29,11 @@ public class AccountController : ControllerBase
         if(result == false)            
             return StatusCode(StatusCodes.Status500InternalServerError);
 
-        return Ok("OK");
+        return Content("OK");
     }
 
     [HttpGet("balance")]
-    public async Task<IActionResult> GetBalance([FromQuery] int account_id)
+    public async Task<IActionResult> GetBalance([FromQuery] string account_id)
     {
         var account = _accountService.GetBalance(account_id);
 
@@ -41,12 +44,12 @@ public class AccountController : ControllerBase
     }
 
     [HttpPost("event")]
-    public async Task<IActionResult> PostEvent([FromBody] EventDto data)
+    public IActionResult PostEvent([FromBody] EventDto data)
     {
         try
         {
             var result = _accountService.Post(data);
-            return  Created(string.Empty, result);
+            return Created("", result);
         }
         catch (InvalidOperationException e)
         {

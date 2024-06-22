@@ -5,6 +5,6 @@ namespace Ebanx.Interfaces;
 public interface IAccountService
 {
     bool Reset();
-    AccountDto? GetBalance(int id);
-    Dictionary<string, object> Post(EventDto data);
+    AccountDto? GetBalance(string id);
+    ResponseDto Post(EventDto data);
 }
