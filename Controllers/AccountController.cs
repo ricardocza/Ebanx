@@ -1,11 +1,7 @@
 ﻿using Ebanx.Interfaces;
 using Ebanx.Models;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.Text.Encodings.Web;
-using System.Text.Json;
-using System.Text.Unicode;
 
 namespace Ebanx.Controllers;
 
@@ -22,7 +18,7 @@ public class AccountController : ControllerBase
     }
 
     [HttpPost("reset")]
-    public async Task<IActionResult> Post()
+    public IActionResult Post()
     {
         var result = _accountService.Reset();
 
@@ -33,7 +29,7 @@ public class AccountController : ControllerBase
     }
 
     [HttpGet("balance")]
-    public async Task<IActionResult> GetBalance([FromQuery] string account_id)
+    public IActionResult GetBalance([FromQuery] string account_id)
     {
         var account = _accountService.GetBalance(account_id);
 

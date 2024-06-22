@@ -1,7 +1,6 @@
 ﻿using Ebanx.Models;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.Net.Http.Headers;
-using System.Collections;
 using System.Text;
 
 namespace Ebanx.Configurations;
@@ -21,6 +20,7 @@ public class ResponseFormater : TextOutputFormatter
 
         var buffer = new StringBuilder();        
         var data = context.Object as ResponseDto;
+
         if (data != null)
         {
             buffer.Append(data?.ToString());

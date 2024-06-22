@@ -2,7 +2,7 @@
 
 public class AccountDto
 {
-    public string Id { get; set; }
+    public string Id { get; set; } = "";
     public int Balance { get; set; }
 
     override public string ToString()
@@ -10,5 +10,4 @@ public class AccountDto
         var result = $"{{\"id\":\"{Id}\", \"balance\":{Balance}}}";        
         return result;
     }
-
 }

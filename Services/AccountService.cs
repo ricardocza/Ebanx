@@ -1,7 +1,6 @@
 ﻿using Ebanx.Enumerations;
 using Ebanx.Interfaces;
 using Ebanx.Models;
-using System.Text.Json;
 
 namespace Ebanx.Services;
 
@@ -22,18 +21,17 @@ public class AccountService : IAccountService
     }
 
     public ResponseDto Post(EventDto data)
-    {        
-        ValidataData(data);
+    {
+        ValidateData(data);
 
         switch (data.Type)
         {
-            case Enumerations.TypeEnum.Deposit:
+            case TypeEnum.Deposit:
                 var depositResult = Deposit(data);
                 return depositResult;
             case TypeEnum.Withdraw:
                 var withdrawResult = Withdraw(data);
-                return withdrawResult;
-                
+                return withdrawResult;                
             case TypeEnum.Transfer:
                 var transferResult = Transfer(data);
                 return transferResult;
@@ -45,6 +43,7 @@ public class AccountService : IAccountService
     private static ResponseDto Deposit(EventDto data)
     {
         var destination = _accounts.FirstOrDefault(a => a.Id == data.Destination);
+
         if (destination == null)
         {
             destination = new AccountDto { Id = data.Destination, Balance = data.Amount };            
@@ -109,7 +108,7 @@ public class AccountService : IAccountService
         }
     }
 
-    private void ValidataData(EventDto data)
+    private static void ValidateData(EventDto data)
     {
         var errors = new List<string>();
         
