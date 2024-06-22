@@ -36,4 +36,5 @@ The terminal should now be tunneling the api and have a address like this
 ```
 Forwarding                    https://d506-177-220-174-86.ngrok-free.app -> https://localhost:5264/
 ```
-Select the link ```https://d506-177-220-174-86.ngrok-free.app``` and place it into the URL field available in the [Ipkiss page](https://ipkiss.pragmazero.com/)
+Copy the link ```https://d506-177-220-174-86.ngrok-free.app``` (this link will be differente everytime you start the agent),\
+and place it into the URL field available in the [Ipkiss page](https://ipkiss.pragmazero.com/)
